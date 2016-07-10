@@ -30,10 +30,24 @@ def get_content(url, headers={}, decoded=True):
 
     return data
 
-def list_books():
+class Comic():
+    def __init__(self, title, url, concluded):
+        self.title = title
+        self.url = url
+        self.concluded = concluded
+
+def get_comics():
     soup = BeautifulSoup(get_content(SITE), 'html.parser')
-    links = soup.find(id='recent-post').find_all('a', class_='tx-link')
-    print({ link.get('href'): link.get_text() for link in links })
+    for a in soup.find(id='recent-post').find_all('a', class_='tx-link'):
+        yield Comic(a.get_text(), a.get('href'), True)
+    for a in soup.find(id='manga-list').find_all('a', class_='lists')[3:]:
+        yield Comic(a.get_text(), a.get('href'), False)
+
+def list_comics():
+    for comic in get_comics():
+        print("     - title:     %s" % comic.title)
+        print("       url:       %s" % comic.url)
+        print("       concluded: %s" % comic.concluded)
 
 def main(**kwargs):
     def version():
@@ -45,7 +59,7 @@ def main(**kwargs):
     -h | --help                 Print help and exit.
     \n'''
     help += '''Dry-run options: (no actual downloading)
-    -l | --list                 Display all available books.
+    -l | --list                 Display all available comics.
     \n'''
 
     short_opts = 'Vhl'
@@ -68,7 +82,7 @@ def main(**kwargs):
             print(help)
             sys.exit()
         elif o in ('-l', '--list'):
-            list_books()
+            list_comics()
             sys.exit()
         else:
             log.e("Try 'zss-get --help' for more options")
