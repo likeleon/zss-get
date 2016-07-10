@@ -1,7 +1,7 @@
-import getopt
 import sys
 import logging
 import socket
+import argparse
 
 from util import log
 from urllib import request
@@ -49,44 +49,30 @@ def list_comics():
         print("       url:       %s" % comic.url)
         print("       concluded: %s" % comic.concluded)
 
+def get_parser():
+    parser = argparse.ArgumentParser(description='zangsisi downloader')
+    parser.add_argument('book', metavar='BOOK', type=str, nargs='*', help='title of the book to download')
+    parser.add_argument('-l', '--list', help='display all available comics.', action='store_true')
+    parser.add_argument('-v', '--version', help='displays the current version of zss-get', action='store_true')
+    return parser
+
 def main(**kwargs):
-    def version():
-        log.i('version %s, zangsisi downloader.' % __version__)
+    #sys.argv[1:] = ['-l']
 
-    help = 'Usage: %s [OPTION]... \n\n' % 'zss-get'
-    help += '''Startup options:
-    -V | --version              Print version and exit.
-    -h | --help                 Print help and exit.
-    \n'''
-    help += '''Dry-run options: (no actual downloading)
-    -l | --list                 Display all available comics.
-    \n'''
+    parser = get_parser()
+    args = vars(parser.parse_args())
 
-    short_opts = 'Vhl'
-    opts = ['version', 'help', 'list']
+    if args['version']:
+        print(__version__)
+        return
 
-    sys.argv[1:] = ['-l']
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], short_opts, opts)
-    except getopt.GetoptError as err:
-        log.e(err)
-        log.e("try 'zss-get --help' for more options")
-        sys.exit(2)
+    if args['list']:
+        list_comics()
+        return
 
-    for o, a in opts:
-        if o in ('-V', '--version'):
-            version()
-            sys.exit()
-        elif o in ('-h', '--help'):
-            version()
-            print(help)
-            sys.exit()
-        elif o in ('-l', '--list'):
-            list_comics()
-            sys.exit()
-        else:
-            log.e("Try 'zss-get --help' for more options")
-            sys.exit(2)
+    if not args['book']:
+        parser.print_help()
+        return
 
 if __name__ == '__main__':
     main()
