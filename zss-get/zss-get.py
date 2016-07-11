@@ -1,33 +1,20 @@
 import sys
-import logging
-import socket
 import argparse
+import bs4
+import os
+import os.path
+import itertools
 
+from common import *
 from urllib import request
-from bs4 import BeautifulSoup
+from zipfile import ZipFile
 
-__version__ = '0.1'
+# TODO
+# --force, --output_dir, --volume, ProgressBar
+
+__version__ = '0.5'
 
 SITE = "http://zangsisi.net/"
-
-def get_content(url, headers={}, decoded=True):
-    logging.debug('get_content: %s' % url)
-
-    req = request.Request(url, headers=headers)
-
-    for i in range(10):
-        try:
-            response = request.urlopen(req)
-            break
-        except socket.timeout:
-            logging.debug('request attempt %s timeout' % str(i + 1))
-
-    data = response.read()
-
-    if decoded:
-        data = data.decode()
-
-    return data
 
 class Comic():
     def __init__(self, title, url, concluded):
@@ -36,7 +23,7 @@ class Comic():
         self.concluded = concluded
 
 def all_comics():
-    soup = BeautifulSoup(get_content(SITE), 'html.parser')
+    soup = bs4.BeautifulSoup(get_content(SITE), 'html.parser')
     for a in soup.find(id='recent-post').find_all('a', class_='tx-link'):
         yield Comic(a.get_text(), a.get('href'), True)
     for a in soup.find(id='manga-list').find_all('a', class_='lists')[3:]:
@@ -48,13 +35,36 @@ def print_comic(comic):
     print("  concluded: %s" % comic.concluded)
 
 def get_books(comic):
-    soup = BeautifulSoup(get_content(comic.url), 'html.parser')
+    soup = bs4.BeautifulSoup(get_content(comic.url), 'html.parser')
     for a in soup.find(id='recent-post').find_all('a', class_='tx-link'):
         yield a.get_text(), a.get('href')
 
-def download(comic):
-    for book, link in get_books(comic):
-        print("{}: {}".format(book, link))
+def download(comic, output_dir='.'):
+    print('Downloading %s ...' % comic.title)
+
+    for title, link in itertools.islice(get_books(comic), 1):
+        output_filename = '%s.zip' % title
+        output_filepath = os.path.join(output_dir, output_filename)
+        download_book(title, link, output_filepath)
+
+def download_book(title, link, filepath):
+    if os.path.exists(filepath):
+        print('Skipping %s: file already exists' % (os.path.basename(filepath)))
+        return
+    elif not os.path.exists(os.path.dirname(filepath)):
+        os.mkdir(os.path.dirname(filepath))
+
+    with ZipFile(filepath, 'w') as zip:
+        for img_url in get_image_urls(link):
+            with request.urlopen(img_url) as response:
+                arcname = url_basename(unquote_twice(img_url))
+                zip.writestr(arcname, response.read())
+    print()
+
+def get_image_urls(link):
+    soup = bs4.BeautifulSoup(get_content(link), 'html.parser')
+    for img in soup.find('span', class_='contents').find_all('img'):
+        yield img.get('src')
 
 def get_parser():
     parser = argparse.ArgumentParser(description='zangsisi downloader')
@@ -84,7 +94,7 @@ def main(**kwargs):
 
     comics = [c for c in all_comics() if all(k in c.title for k in args['keyword'])]
     if len(comics) > 1:
-        print("Ambiguous keywords: '{}'. Matched comics: ".format(", ".join(keywords)))
+        print("Ambiguous keywords: '%s'. Matched comics: " % (", ".join(keywords)))
         for c in comics:
             print_comic(c)
         return
