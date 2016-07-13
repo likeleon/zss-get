@@ -1,9 +1,7 @@
 import sys
 import argparse
-import bs4
 import os
 import os.path
-import itertools
 
 from common import *
 from urllib import request
@@ -11,9 +9,9 @@ from zipfile import ZipFile
 from bs4 import BeautifulSoup
 
 # TODO
-# --volume, ProgressBar
+# --volume
 
-__version__ = '0.6'
+__version__ = '0.9'
 
 SITE = "http://zangsisi.net/"
 
@@ -43,7 +41,7 @@ def get_books(comic):
 def download(comic, args):
     print('Downloading %s ...' % comic.title)
 
-    for title, link in itertools.islice(get_books(comic), 1):
+    for title, link in get_books(comic):
         output_filename = '%s.zip' % title
         output_filepath = os.path.join(args['output_dir'], output_filename)
         download_book(title, link, output_filepath, args['force'])
@@ -55,15 +53,27 @@ def download_book(title, link, filepath, force):
             return
         else:
             print('Overwriting %s' % (os.path.basename(filepath)))
-    elif not os.path.exists(os.path.dirname(filepath)):
-        os.mkdir(os.path.dirname(filepath))
+    else:
+        print('Downloading %s' % (os.path.basename(filepath)))
+        if not os.path.exists(os.path.dirname(filepath)):
+            os.mkdir(os.path.dirname(filepath))
 
+    urls = list(get_image_urls(link))
+    if not urls:
+        print('Skipping %s: nothing to download' % (os.path.basename(filepath)))
+        return
+
+    bar = SimpleProgressBar(len(urls))
+    bar.update()    
     with ZipFile(filepath, 'w') as zip:
-        for img_url in get_image_urls(link):
+        for i, img_url in enumerate(urls):
             with request.urlopen(img_url) as response:
                 arcname = url_basename(unquote_twice(img_url))
-                zip.writestr(arcname, response.read())
-    print()
+                data = response.read()
+                zip.writestr(arcname, data)
+                bar.update_current(i + 1)
+                bar.update_received(len(data))
+    bar.done()
 
 def get_image_urls(link):
     soup = BeautifulSoup(get_content(link), 'html.parser')
@@ -80,8 +90,6 @@ def get_parser():
     return parser
 
 def main(**kwargs):
-    sys.argv[1:] = ['은혼', '-f', '-h']
-
     parser = get_parser()
     args = vars(parser.parse_args())
 
