@@ -9,7 +9,7 @@ from urllib import request
 from zipfile import ZipFile
 from bs4 import BeautifulSoup
 
-__version__ = '1.0'
+__version__ = '1.1'
 
 SITE = "http://zangsisi.net/"
 
@@ -32,7 +32,7 @@ def print_comic(comic):
     print("  concluded: %s" % comic.concluded)
 
 def download(comic, args):
-    print('Downloading %s ...' % comic.title)
+    print('Navigating %s ...' % comic.title)
 
     for title, link in get_books(comic, args['volume']):
         output_filename = '%s.zip' % title
@@ -78,7 +78,7 @@ def save_images(urls, zip):
     bar.update()
 
     for i, img_url in enumerate(urls):
-        with request.urlopen(img_url) as response:
+        with request.urlopen(quote_url(img_url)) as response:
             arcname = url_basename(unquote_twice(img_url))
             data = response.read()
             zip.writestr(arcname, data)

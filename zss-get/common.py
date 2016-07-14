@@ -32,6 +32,11 @@ def url_basename(url):
 def unquote_twice(url):
     return parse.unquote_plus(parse.unquote_plus(url))
 
+def quote_url(url):
+    parts = list(parse.urlsplit(url))
+    parts[2] = parse.quote(parts[2])
+    return parse.urlunsplit(parts)
+
 class SimpleProgressBar:
     term_size = min(shutil.get_terminal_size().columns, 80)
 
