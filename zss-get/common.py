@@ -44,7 +44,7 @@ class SimpleProgressBar:
         self.last_updated = time.time()
 
         total_len = len(str(total))
-        self.bar_size = self.term_size - 27 - 2 * total_len
+        self.bar_size = self.term_size - 37 - 2 * total_len
         self.bar = '{:>4}%% ({:>5}MB) ├{:-<%s}┤[{:>%s}/{:>%s}] {}' % (
             self.bar_size, total_len, total_len)
 
