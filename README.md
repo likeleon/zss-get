@@ -1,6 +1,6 @@
 # zssget
 
-```sh
+```
 usage: zssget [-h] [-l] [--volume VOLUME] [-o OUTPUT_DIR] [-f] [-v]
               [KEYWORD [KEYWORD ...]]
 
