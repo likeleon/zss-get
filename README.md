@@ -1,5 +1,6 @@
 # zssget
 
+```sh
 usage: zssget [-h] [-l] [--volume VOLUME] [-o OUTPUT_DIR] [-f] [-v]
               [KEYWORD [KEYWORD ...]]
 
@@ -16,3 +17,4 @@ optional arguments:
                         Set output directory
   -f, --force           Force overwriting existed files
   -v, --version         Displays the current version of zssget
+```
