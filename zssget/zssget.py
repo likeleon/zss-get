@@ -96,7 +96,7 @@ def get_image_urls(link):
 
 def get_parser():
     parser = argparse.ArgumentParser(prog='zssget', description='zangsisi downloader')
-    parser.add_argument('keyword', metavar='KEYWORD', type=str, nargs='+', help='keyword for searching the book by its title')
+    parser.add_argument('keyword', metavar='KEYWORD', type=str, nargs='*', help='keyword for searching the book by its title')
     parser.add_argument('-l', '--list', help='Display all available comics', action='store_true')
     parser.add_argument('--volume', help='Set volume number to download', type=int)
     parser.add_argument('-o', '--output-dir', help='Set output directory', type=str, default='.')
@@ -115,6 +115,10 @@ def main(**kwargs):
     if args['list']:
         for c in all_comics():
             print_comic(c)
+        return
+
+    if not args['keyword']:
+        parser.print_help()
         return
 
     comics = [c for c in all_comics() if all(k in c.title for k in args['keyword'])]
