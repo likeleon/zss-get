@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # from https://github.com/soimort/you-get/blob/c9223acd11bff0d19899eaa8fb0f1dddadc664b0/src/you_get/util/log.py
 
 import os, sys

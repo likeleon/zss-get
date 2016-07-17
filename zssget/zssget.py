@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import argparse
 import os
@@ -8,8 +10,7 @@ from common import *
 from urllib import request
 from zipfile import ZipFile
 from bs4 import BeautifulSoup
-
-__version__ = '1.1'
+from __init__ import __version__
 
 SITE = "http://zangsisi.net/"
 
@@ -41,7 +42,8 @@ def download(comic, args):
 
 def get_books(comic, volume):
     soup = BeautifulSoup(get_content(comic.url), 'html.parser')
-    for a in soup.find(id='recent-post').find_all('a', class_='tx-link'):
+    links = soup.find(id='recent-post') or soup.find('span', class_='contents')
+    for a in links.find_all('a'):
         title = a.get_text()
         if volume and guess_volume(title) != volume:
             continue
@@ -93,13 +95,13 @@ def get_image_urls(link):
         yield img.get('src')
 
 def get_parser():
-    parser = argparse.ArgumentParser(description='zangsisi downloader')
+    parser = argparse.ArgumentParser(prog='zssget', description='zangsisi downloader')
     parser.add_argument('keyword', metavar='KEYWORD', type=str, nargs='+', help='keyword for searching the book by its title')
     parser.add_argument('-l', '--list', help='Display all available comics', action='store_true')
     parser.add_argument('--volume', help='Set volume number to download', type=int)
     parser.add_argument('-o', '--output-dir', help='Set output directory', type=str, default='.')
     parser.add_argument('-f', '--force', help='Force overwriting existed files', default=False, action='store_true')
-    parser.add_argument('-v', '--version', help='Displays the current version of zss-get', action='store_true')
+    parser.add_argument('-v', '--version', help='Displays the current version of zssget', action='store_true')
     return parser
 
 def main(**kwargs):
