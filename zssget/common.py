@@ -52,7 +52,7 @@ class SimpleProgressBar:
 
         total_len = len(str(total))
         self.bar_size = self.term_size - 37 - 2 * total_len
-        self.bar = '{:>4}%% ({:>5}MB) ├{:-<%s}┤[{:>%s}/{:>%s}] {}' % (
+        self.bar = '{:>4}%% ({:>5}MB) ├{: <%s}┤[{:>%s}/{:>%s}] {}' % (
             self.bar_size, total_len, total_len)
 
     def update(self):
@@ -62,7 +62,7 @@ class SimpleProgressBar:
         if percent >= 100:
             percent = 100
         dots = bar_size * int(percent) // 100
-        bar = self.bar.format(percent, round(self.bytes_received / 1048576, 1), '+' * dots, self.current, self.total, self.speed)
+        bar = self.bar.format(percent, round(self.bytes_received / 1048576, 1), '#' * dots, self.current, self.total, self.speed)
         sys.stdout.write('\r' + bar)
         sys.stdout.flush()
 

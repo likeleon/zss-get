@@ -27,10 +27,10 @@ def all_comics():
     for a in soup.find(id='manga-list').find_all('a', class_='lists')[3:]:
         yield Comic(a.get_text(), a.get('href'), False)
 
-def print_comic(comic):
-    print("- title:     %s" % comic.title)
-    print("  url:       %s" % comic.url)
-    print("  concluded: %s" % comic.concluded)
+def print_comics(comics):
+    print('* denotes conclusion')
+    for i, comic in enumerate(comics):
+        print('%d. %s%s' % (i, comic.title, ' *' if comic.concluded else ''))
 
 def download(comic, args):
     print('Navigating %s ...' % comic.title)
@@ -113,19 +113,18 @@ def main(**kwargs):
         return
 
     if args['list']:
-        for c in all_comics():
-            print_comic(c)
+        print_comics(all_comics())
         return
 
-    if not args['keyword']:
+    keywords = args['keyword']
+    if not keywords:
         parser.print_help()
         return
 
-    comics = [c for c in all_comics() if all(k in c.title for k in args['keyword'])]
+    comics = [c for c in all_comics() if all(k in c.title for k in keywords)]
     if len(comics) > 1:
         print("Ambiguous keywords: '%s'. Matched comics: " % (", ".join(keywords)))
-        for c in comics:
-            print_comic(c)
+        print_comics(comics)
         return
 
     download(comics[0], args)
