@@ -34,7 +34,7 @@ setup(
     packages=find_packages(),
     entry_points={
         'console_scripts': [
-            'zssget = zssget.zssget:main'
+            'zssget = zssget.__main__:main'
         ]
     },
     install_requires=[
